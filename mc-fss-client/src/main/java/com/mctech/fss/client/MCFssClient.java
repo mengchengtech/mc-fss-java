@@ -28,14 +28,14 @@ import java.util.Map;
 public class MCFssClient {
   private static final Charset DEFAULT_CHARSET = StandardCharsets.UTF_8;
 
-  private final MCFileClientConfig config;
+  private final MCFssClientConfig config;
   private final URI defaultEndpoint;
   private final URI publicEndPoint;
 
   private final CloseableHttpClient httpClient;
 
   @SneakyThrows
-  public MCFssClient(MCFileClientConfig config) {
+  public MCFssClient(MCFssClientConfig config) {
     this.config = config;
     this.publicEndPoint = new URI(config.getPublicEndPoint());
     this.defaultEndpoint = config.isInternal()

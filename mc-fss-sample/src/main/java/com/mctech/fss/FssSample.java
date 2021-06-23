@@ -14,7 +14,7 @@ import java.util.Properties;
 public class FssSample {
   @SneakyThrows
   public static void main(String[] args) {
-    MCFileClientConfig config = new MCFileClientConfig();
+    MCFssClientConfig config = new MCFssClientConfig();
     Properties p = new Properties();
     InputStream s = FssSample.class.getResourceAsStream("/config.properties");
     p.load(s);

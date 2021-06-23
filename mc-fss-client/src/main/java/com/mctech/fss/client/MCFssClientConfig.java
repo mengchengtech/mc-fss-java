@@ -5,7 +5,7 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class MCFileClientConfig {
+public class MCFssClientConfig {
   private boolean internal = false;
   private String bucketName;
   private String accessKeyId;
