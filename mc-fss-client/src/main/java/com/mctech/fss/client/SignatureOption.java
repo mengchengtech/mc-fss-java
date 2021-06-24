@@ -72,7 +72,7 @@ public class SignatureOption {
   }
 
   public String getFormatedDate() {
-    return DateUtils.formatDate(new Date());
+    return DateUtils.formatDate(this.date);
   }
 
   public void setMetadata(Map<String, String> metadata) {

@@ -122,28 +122,20 @@ public class MCFssClient {
   }
 
   public String generateObjectUrl(String key) {
-    String resource = this.getResource(key);
-    URIBuilder builder = createUriBuilder(resource, false);
+    String path = this.getResourcePath(key, false);
+    URIBuilder builder = createUriBuilder(path, false);
     return builder.toString();
   }
 
-  private URIBuilder createUriBuilder(String resource, boolean usePublic) {
+  private URIBuilder createUriBuilder(String resourcePath, boolean usePublic) {
     URI endPoint = usePublic ? this.publicEndPoint : this.defaultEndpoint;
     URIBuilder builder = new URIBuilder(endPoint);
     String basePath = builder.getPath();
     String absolutePath;
     if (basePath.endsWith("/")) {
-      if (resource.startsWith("/")) {
-        absolutePath = basePath.substring(0, basePath.length() - 1) + resource;
-      } else {
-        absolutePath = basePath + resource;
-      }
+      absolutePath = basePath + resourcePath;
     } else {
-      if (resource.startsWith("/")) {
-        absolutePath = basePath + resource;
-      } else {
-        absolutePath = basePath + "/" + resource;
-      }
+      absolutePath = basePath + "/" + resourcePath;
     }
     builder.setPath(absolutePath);
     return builder;
@@ -154,11 +146,12 @@ public class MCFssClient {
    * @param {any}    option
    */
   public String getSignatureUrl(String key, SignatureOption option) {
-    String resource = this.getResource(key);
+    String resource = this.getResourcePath(key, true);
     SignedResource sign = this.signatureResource(resource, option);
 
     // 默认为给外部使用，所以指定用外网地址
-    URIBuilder builder = createUriBuilder(resource, true);
+    String path = this.getResourcePath(key, false);
+    URIBuilder builder = createUriBuilder(path, true);
     builder.addParameter(HttpConsts.ACCESS_KEY_ID, this.config.getAccessKeyId());
     builder.addParameter(HttpConsts.EXPIRES, Long.toString(sign.getExpires()));
     builder.addParameter(HttpConsts.SIGNATURE, sign.getSignature());
@@ -230,8 +223,6 @@ public class MCFssClient {
   private SignedData generateSignedData(SignDataOption option) {
     FssOperation method = option.getMethod();
     String key = option.getKey();
-    String resource = this.getResource(key);
-
     Map<String, String> headers = new HashMap<>();
     if (option.getMetadata() != null) {
       for (Map.Entry<String, String> entry : option.getMetadata().entrySet()) {
@@ -246,11 +237,13 @@ public class MCFssClient {
       opts.setDate(new Date());
     }
     opts.setMetadata(option.getMetadata());
+    String resource = this.getResourcePath(key, true);
     SignedResource sign = this.signatureResource(resource, opts);
     headers.put(HttpHeaders.AUTHORIZATION,
         String.format("FSS %s:%s", this.config.getAccessKeyId(), sign.getSignature()));
 
-    URIBuilder builder = createUriBuilder(resource, false);
+    String path = this.getResourcePath(key, false);
+    URIBuilder builder = createUriBuilder(path, false);
 
     for (Map.Entry<String, String> entry : sign.getSubResource().entrySet()) {
       builder.addParameter(entry.getKey(), entry.getValue());
@@ -260,19 +253,22 @@ public class MCFssClient {
     // 拼成服务端需要的地址
     URI targetUrl = builder.build();
     headers.put(HttpHeaders.ACCEPT, "application/xml,*/*");
-    headers.put(HttpHeaders.DATE, opts.getFormatedDate());
+    if (opts.getExpires() != null) {
+      headers.put(HttpHeaders.DATE, opts.getFormatedDate());
+    }
     SignedData data = new SignedData();
     data.setTargetUrl(targetUrl);
     data.setMethod(option.getMethod());
     if (opts.getExpires() == null) {
       data.setHeaders(headers);
     }
-    data.setResource(resource);
+    data.setResource(path);
     return data;
   }
 
-  private String getResource(String key) {
-    return "/" + this.config.getBucketName() + "/" + key;
+  private String getResourcePath(String key, boolean addPrefix) {
+    String prefix = addPrefix ? "/" : "";
+    return prefix + this.config.getBucketName() + "/" + key;
   }
 
   @SneakyThrows
