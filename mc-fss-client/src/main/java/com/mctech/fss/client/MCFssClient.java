@@ -59,7 +59,7 @@ public class MCFssClient {
    * @param metadata    文件附加的meta信息。可为null
    * @param contentType 文件的content-type，下载的时候会用到。可为null
    * @param length      上传的内容长度。可为null
-   * @return
+   * @return -
    */
   @SneakyThrows
   public RequestResult put(String key, String fileName, InputStream is,
@@ -141,10 +141,6 @@ public class MCFssClient {
     return builder;
   }
 
-  /**
-   * @param {String} key
-   * @param {any}    option
-   */
   public String getSignatureUrl(String key, SignatureOption option) {
     String resource = this.getResourcePath(key, true);
     SignedResource sign = this.signatureResource(resource, option);
@@ -163,9 +159,6 @@ public class MCFssClient {
     return builder.toString();
   }
 
-  /**
-   * @param {String} key
-   */
   public ObjectMeta head(String key) {
     SignDataOption option = new SignDataOption();
     option.setKey(key);
@@ -187,9 +180,6 @@ public class MCFssClient {
     return om;
   }
 
-  /**
-   * @param {String} key
-   */
   public Map<String, String> getObjectMeta(String key) {
     SignDataOption option = new SignDataOption();
     option.setKey(key);
@@ -217,7 +207,7 @@ public class MCFssClient {
   /**
    * 使用header传递签名方式生成签名数据
    *
-   * @param {SignDataOption} option
+   * @param option -
    */
   @SneakyThrows
   private SignedData generateSignedData(SignDataOption option) {
@@ -233,9 +223,7 @@ public class MCFssClient {
     }
 
     SignatureOption opts = new SignatureOption(method, option.getContentType());
-    if (opts.getExpires() == null) {
-      opts.setDate(new Date());
-    }
+    opts.setDate(new Date());
     opts.setMetadata(option.getMetadata());
     String resource = this.getResourcePath(key, true);
     SignedResource sign = this.signatureResource(resource, opts);
@@ -253,15 +241,11 @@ public class MCFssClient {
     // 拼成服务端需要的地址
     URI targetUrl = builder.build();
     headers.put(HttpHeaders.ACCEPT, "application/xml,*/*");
-    if (opts.getExpires() != null) {
-      headers.put(HttpHeaders.DATE, opts.getFormatedDate());
-    }
+    headers.put(HttpHeaders.DATE, opts.getFormatedDate());
     SignedData data = new SignedData();
     data.setTargetUrl(targetUrl);
     data.setMethod(option.getMethod());
-    if (opts.getExpires() == null) {
-      data.setHeaders(headers);
-    }
+    data.setHeaders(headers);
     data.setResource(path);
     return data;
   }
